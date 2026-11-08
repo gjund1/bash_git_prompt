@@ -12,7 +12,7 @@ set -o pipefail
 # ------------------------------------------------------------
 
 APP_NAME="Bash Git Prompt"
-APP_VERSION="1.0.0"
+APP_VERSION="1.1.0"
 
 BASHRC="${HOME}/.bashrc"
 CONFIG_FILE="${HOME}/.bash_git_prompt.sh"
@@ -79,6 +79,7 @@ show_help() {
     echo "  ./install.sh              Install"
     echo "  ./install.sh --status     Check installation"
     echo "  ./install.sh --uninstall  Uninstall"
+    echo "  ./install.sh --update     Update existing installation"
     echo "  ./install.sh --help       Display help"
     echo
 }
@@ -244,7 +245,7 @@ __bpg_git_branch() {
 # Blue   : current directory
 # Yellow : Git branch
 
-PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\[\033[01;33m\]$(__bpg_git_branch)\[\033[00m\]\$ '
+PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\[\033[01;31m\]$(__bpg_git_branch)\[\033[00m\]\$ '
 
 PROMPT_CONFIG
 
@@ -340,6 +341,76 @@ install_prompt() {
         info "To activate the prompt in your current terminal:"
         echo
         echo "  source ~/.bashrc"
+        echo
+
+    fi
+}
+
+# ------------------------------------------------------------
+# Update existing installation
+# ------------------------------------------------------------
+
+update_prompt() {
+
+    print_header
+
+    echo "Checking existing installation..."
+    echo
+
+    if [[ ! -f "${BASHRC}" ]]; then
+        error ".bashrc not found."
+        return 1
+    fi
+
+    local start_count
+    local end_count
+
+    start_count=$(grep -Fc "${START_MARKER}" "${BASHRC}" || true)
+    end_count=$(grep -Fc "${END_MARKER}" "${BASHRC}" || true)
+
+    # Check installation markers
+    if [[ "${start_count}" -ne 1 ]] ||
+       [[ "${end_count}" -ne 1 ]]; then
+
+        error "No valid installation detected."
+        error "Run the installer first."
+        return 1
+    fi
+
+    # Check existing configuration
+    if [[ ! -f "${CONFIG_FILE}" ]]; then
+        error "Configuration file is missing."
+        return 1
+    fi
+
+    success "Existing installation detected."
+
+    echo
+    info "Starting update..."
+    echo
+
+    # Backup existing configuration
+    create_backup || return 1
+
+    # Regenerate configuration from install.sh
+    create_configuration || return 1
+
+    echo
+    success "Update completed!"
+
+    # Activate immediately if sourced
+    if [[ "${SCRIPT_SOURCED}" == true ]]; then
+
+        source "${CONFIG_FILE}"
+
+        success "Prompt updated in the current terminal."
+
+    else
+
+        echo
+        info "To activate the updated prompt:"
+        echo
+        echo "  source ~/.bash_git_prompt.sh"
         echo
 
     fi
@@ -534,6 +605,10 @@ main() {
 
         --status)
             show_status
+            ;;
+
+        --update)
+            update_prompt
             ;;
 
         --uninstall)

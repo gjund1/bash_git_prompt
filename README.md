@@ -32,7 +32,7 @@ This project adds that functionality while keeping the prompt simple, readable a
 
 | Feature | Description |
 |---|---|
-| Custom prompt | monnalized Bash terminal prompt |
+| Custom prompt | Personalized Bash terminal prompt |
 | Git integration | Automatic Git branch detection |
 | Colored display | Different colors for each prompt element |
 | OS detection | Ubuntu and Debian verification |
@@ -42,8 +42,9 @@ This project adds that functionality while keeping the prompt simple, readable a
 | Duplicate protection | Detects existing installations |
 | Integrity check | Detects incomplete installations |
 | Status command | Checks installation status |
+| Update command | Regenerates the prompt configuration |
 | Uninstaller | Removes the installed configuration |
-| Immediate activation | Activates the prompt without restarting the terminal |
+| Immediate activation | Activates changes without restarting the terminal |
 
 ---
 
@@ -293,16 +294,70 @@ To activate it manually:
 source ~/.bashrc
 ```
 
+## Updating the Configuration
+
+Bash Git Prompt includes an update command that allows users to regenerate the prompt configuration directly from `install.sh`.
+
+This is particularly useful when modifying the Git branch display, prompt colors or other configuration settings.
+
+### Update and activate immediately
+
+```bash
+source ./install.sh --update
+```
+
+This command:
+
+1. Checks whether an installation already exists.
+2. Verifies the installation markers in `.bashrc`.
+3. Creates a timestamped backup of the existing configuration.
+4. Regenerates `~/.bash_git_prompt.sh`.
+5. Activates the updated prompt in the current terminal.
+
+### Standard update
+
+```bash
+./install.sh --update
+```
+
+This updates the configuration without activating it immediately.
+
+To activate the changes manually:
+
+```bash
+source ~/.bash_git_prompt.sh
+```
+
+### Example: Changing the Git branch color
+
+The Git branch color can be modified directly in the `PS1` variable inside `install.sh`.
+
+Example with a red Git branch:
+
+```bash
+PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\[\033[01;31m\]$(__bpg_git_branch)\[\033[00m\]\$ '
+```
+
+After saving the changes, run:
+
+```bash
+source ./install.sh --update
+```
+
+The new configuration will be generated and activated automatically.
+
 ---
 
-## 6. Available Commands
+### 6. Available Commands
 
-The installer supports several commands.
+The installer supports several operations:
 
 | Command | Description |
 |---|---|
-| `source ./install.sh` | Install and activate the prompt |
-| `./install.sh` | Standard installation |
+| `./install.sh` | Install the prompt |
+| `source ./install.sh` | Install and activate immediately |
+| `./install.sh --update` | Update the existing configuration |
+| `source ./install.sh --update` | Update and activate immediately |
 | `./install.sh --status` | Check installation status |
 | `./install.sh --uninstall` | Uninstall the prompt |
 | `./install.sh --help` | Display available commands |
